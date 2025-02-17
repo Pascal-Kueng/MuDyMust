@@ -1,9 +1,8 @@
 
 
 
-load('Datasets/t&t.rds')
-load('Datasets/t&t.rds')
-load('Datasets/t&t.rds')
+df_kamp <- readRDS('Datasets/df_kamp.rds')
+df_tt <- readRDS('Datasets/t&t.rds')
 
 library(brms)
 
