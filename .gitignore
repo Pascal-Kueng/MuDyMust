@@ -1,3 +1,15 @@
+# Dataset files
+.sav
+*.sav
+.rds
+.rda
+.Rds
+.Rda
+*.rds
+*.rda
+*.Rds
+*.Rda
+
 # History files
 .Rhistory
 .Rapp.history
@@ -47,3 +59,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+
+# large files used for caching
+*_cache
+*_files
