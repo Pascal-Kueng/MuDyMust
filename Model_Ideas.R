@@ -1,5 +1,10 @@
 
 
+
+load('Datasets/t&t.rds')
+load('Datasets/t&t.rds')
+load('Datasets/t&t.rds')
+
 library(brms)
 
 # Outcome model: mvpa is modeled using a non-linear formula that decomposes social_support
@@ -33,3 +38,4 @@ bf_mvpa_support <- bf(
   mvpa ~ (control_cw + control_cb) * rel_type +
     (1 + control_cw | studyId/personId)
 )
+
