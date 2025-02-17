@@ -1,8 +1,9 @@
 
 
 
-df_kamp <- readRDS('Datasets/df_kamp.rds')
+df_kamp <- readRDS('Datasets/kamp.rds')
 df_tt <- readRDS('Datasets/t&t.rds')
+
 
 library(brms)
 
