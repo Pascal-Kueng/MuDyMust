@@ -113,8 +113,8 @@ rescale_measures <- function(
   data <- data %>%
     dplyr::mutate(
       id = as.factor(id),
-      day = as.numeric(day),
-      mvpa = as.numeric(mvpa),
+      day = as.integer(day),
+      mvpa = as.integer(mvpa),
       emo_support = as.numeric(emo_support),
       pract_support = as.numeric(pract_support),
       pos_control = as.numeric(pos_control),
@@ -214,13 +214,13 @@ Apply function and combine datasets
 
 ```{r}
 
-df <- combine_datasets(
+df_merged <- combine_datasets(
   df_kamp,
   df_tt
 )
 
-head(df)
-head(df[df$studyID == 2,])
+head(df_merged)
+head(df_merged[df_merged$studyID == 2,])
 
 ```
 

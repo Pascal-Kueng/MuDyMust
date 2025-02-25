@@ -89,7 +89,7 @@ temp_script <- tempfile(fileext = ".R")
 knitr::purl("01_harmonize_datasets.Rmd", output = temp_script)
 source(temp_script)
 
-head(df) 
+head(df_merged) 
 
 ```
 
@@ -97,10 +97,10 @@ head(df)
 
 ```{r}
 
-hist(df$emo_support)
-hist(df$pract_support)
-hist(df$pos_control)
-hist(df$neg_control)
+hist(df_merged$emo_support)
+hist(df_merged$pract_support)
+hist(df_merged$pos_control)
+hist(df_merged$neg_control)
 
 
 ```
@@ -108,10 +108,10 @@ hist(df$neg_control)
 
 ```{r}
 
-hist(df$mvpa, breaks=200)
-plot(df$day, df$mvpa)
-plot(df$studyID, df$mvpa)
-plot(df$dyad_type, df$mvpa)
+hist(df_merged$mvpa, breaks=200)
+plot(df_merged$day, df_merged$mvpa)
+plot(df_merged$studyID, df_merged$mvpa)
+plot(df_merged$dyad_type, df_merged$mvpa)
 
 ```
 
@@ -121,7 +121,7 @@ plot(df$dyad_type, df$mvpa)
 ```{r}
 
 cors <- wbCorr(
-  df, 
+  df_merged, 
   cluster = 'id', 
   method = 'spearman'
 )
@@ -134,23 +134,23 @@ summary(cors, 'wb')
 
 # Modelling
 
-## Emotional Support
+## Positive Control
 
 ```{r}
 
 ## Support
-formula_support_emo <- bf(
-  mvpa ~ (support_emo_cw + support_emo_cb) * rel_type + 
-    (1 + support_emo_cw | studyID/personID)
+formula_emo_support <- bf(
+  mvpa ~ (pos_control_cw + pos_control_cb) * dyad_type + 
+    (1 + pos_control_cw | studyID/id),
+  family = negbinomial()
 )
 
 #prior1 <- !todo: define priors
 
 model_support_emo <- brm(
-  formula_support_emo, 
+  formula_emo_support, 
   #prior = prior1,
-  data = df_combined, 
-  family = gaussian(), 
+  data = df_merged, 
   chains = 4, 
   iter = 2000, 
   warmup = 1000, 
