@@ -1,0 +1,137 @@
+---
+title: "MuDyMust - Modelling"
+author: "Küng, P., Höhener, P.S., Vieth, G., Spliesgart, A., Scholz, U., Rothman, A., Simpson, J."
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    theme: flatly
+    df_print: kable
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    code_folding: show
+    toc_depth: 5
+    highlight: tango
+---
+
+
+# Setup
+
+```{r setup, message = FALSE, warning = FALSE, results = 'hide'}
+
+library(tidyverse)
+library(easystats)
+library(cmdstanr)
+library(knitr)
+library(brms)
+#install.packages("cmdstanr", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
+#cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+#cmdstanr::install_cmdstan()
+library(remotes)
+#remotes::install_github('Pascal-kueng/wbCorr')
+library(wbCorr)
+
+source(file.path('Functions', 'PrettyTables.R'))
+source(file.path('Functions', 'ReportModels.R'))
+source(file.path('Functions', 'ReportMeasures.R'))
+source(file.path('Functions', 'HurdleGaussianFamily.R'))
+
+```
+
+
+Setting general parameters
+```{r}
+
+system("shutdown /a") # prevent previously initialized shutdowns
+shutdown = FALSE # restart after script finished or an error occurred (can be stoped within 180 seconds with command above)
+check_models = TRUE 
+get_bayesfactor = FALSE 
+
+if (get_bayesfactor) {
+  stats_to_report <- c('CI', 'SE', 'pd', 'ROPE', 'BF', 'Rhat', 'ESS')
+} else {
+  stats_to_report <- c('CI', 'SE', 'pd', 'ROPE', 'Rhat', 'ESS')
+}
+
+options(
+  brms.backend = 'cmdstan',
+  brms.file_refit = 'on_change',
+  #brms.file_refit = 'always',
+  error = function() {
+    beepr::beep(sound = 5)
+    if (shutdown) {
+      system("shutdown /s /t 180")
+      quit(save = "no", status = 1)
+    }
+  }
+  , es.use_symbols = TRUE
+)
+
+
+```
+
+
+Set model parameters
+```{r}
+
+iterations = 2000 # final models 12'000 per chain to achieve 40'000 needed for BF
+warmup = 1000 # 2000 on final models
+
+```
+
+
+# Load merged dataset
+
+```{r}
+
+temp_script <- tempfile(fileext = ".R")
+knitr::purl("01_harmonize_datasets.Rmd", output = temp_script)
+source(temp_script)
+
+head(df) 
+
+```
+
+# Plot distributions of predictors
+
+```{r}
+
+hist(df$emo_support)
+hist(df$pract_support)
+hist(df$pos_control)
+hist(df$neg_control)
+
+
+```
+
+
+# Bivariate correlations
+
+```{r}
+
+cors <- wbCorr(
+  df_kamp, 
+  cluster = 'id', 
+  method = 'spearman'
+)
+
+summary(cors, 'wb')
+
+```
+
+
+
+# Modelling
+
+```{r}
+
+```
+
+
+
+
+
+
+
+

@@ -1,0 +1,225 @@
+---
+title: "MuDyMust - Harmonize Datasets"
+author: "Küng, P., Höhener, P.S., Vieth, G., Spliesgart, A., Scholz, U., Rothman, A., Simpson, J."
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    theme: flatly
+    df_print: kable
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    code_folding: show
+    toc_depth: 5
+    highlight: tango
+---
+
+```{r setup, message = FALSE, warning = FALSE, results = 'hide'}
+
+library(tidyverse)
+library(easystats)
+library(haven)
+library(bmlm)
+
+```
+
+
+# Load Datasets
+
+```{r}
+
+df_kamp <- haven::read_sav('Datasets/KAMP_full.sav') 
+# only select the correct days
+df_kamp <- df_kamp[df_kamp$day_ent >= 0,] # !todo: will we only include these days?
+
+df_tt <- readRDS('Datasets/t&t.rds')
+
+```
+
+
+# Harmonize Measures
+
+Function that renames measures and puts them on the same scale. 
+
+```{r}
+
+rescale_measures <- function(
+  data, 
+  day,
+  id,
+  mvpa, # !todo: use device based?? then filter and add weartime
+  dyad_type, 
+  emo_support = NA, 
+  pract_support = NA, 
+  pos_control = NA, 
+  neg_control = NA,
+  
+  original_scale = "auto", 
+  new_scale = c(0, 5)
+) {
+  # Create a named list mapping the provided variables to standard names
+  vars_map <- list(
+    id = id,
+    day = day,
+    mvpa = mvpa,
+    dyad_type = dyad_type,
+    emo_support = emo_support,
+    pract_support = pract_support,
+    pos_control = pos_control,
+    neg_control = neg_control
+  )
+  
+  # Only keep non-NA columns and subset the data
+  provided_vars <- vars_map[!sapply(vars_map, is.na)]
+  data <- data[, unlist(provided_vars)]
+  names(data) <- names(provided_vars)
+  
+  # Ensure that all measure variables exist; if missing, add as NA
+  measure_vars <- c("emo_support", "pract_support", "pos_control", "neg_control")
+  for (m in measure_vars) {
+    if (!m %in% names(data)) {
+      data[[m]] <- NA
+    }
+  }
+  
+  # Helper function to rescale a vector
+  rescale_column <- function(x, orig_scale, new_scale) {
+    if ("haven_labelled" %in% class(x)) {
+      x <- haven::zap_labels(x)
+    }
+    if (all(is.na(x))) return(x)
+    if (identical(orig_scale, "auto")) {
+      orig_min <- min(x, na.rm = TRUE)
+      orig_max <- max(x, na.rm = TRUE)
+    } else if (is.numeric(orig_scale) && length(orig_scale) == 2) {
+      orig_min <- orig_scale[1]
+      orig_max <- orig_scale[2]
+    } else {
+      stop("original_scale must be 'auto' or a numeric vector of length 2.")
+    }
+    if (orig_min == orig_max) {
+      warning("Constant variable encountered; replacing with new minimum.")
+      return(rep(new_scale[1], length(x)))
+    }
+    (x - orig_min) / (orig_max - orig_min) * (new_scale[2] - new_scale[1]) + new_scale[1]
+  }
+  
+  # Rescale measure variables
+  data <- data %>% 
+    dplyr::mutate(across(all_of(measure_vars), ~ rescale_column(.x, original_scale, new_scale)))
+  
+  # Ensure correct data types
+  data <- data %>%
+    dplyr::mutate(
+      id = as.factor(id),
+      day = as.numeric(day),
+      mvpa = as.numeric(mvpa),
+      emo_support = as.numeric(emo_support),
+      pract_support = as.numeric(pract_support),
+      pos_control = as.numeric(pos_control),
+      neg_control = as.numeric(neg_control),
+      dyad_type = as.factor(dyad_type)
+    )
+  
+  # Return data with columns in a specified order
+  data <- data[, c("id", "dyad_type", "day", "mvpa", measure_vars)]
+  return(data)
+}
+
+
+
+
+```
+
+
+Apply function to rescale and rename the data
+
+## KAMP
+```{r}
+
+df_kamp$dyad_type <- 'Test'
+df_kamp <- rescale_measures(
+  df_kamp, 
+  day = 'day_ent',
+  id = 'IDdiary',
+  mvpa = 'TotalMVPA', #!todo: use self-report?
+  
+  #emo_support = 'soz_emo', ?
+  #pract_support = 'soz_prak', ?
+  pos_control = 'T210_1',
+  neg_control = 'T211_1',
+  
+  dyad_type = 'dyad_type'
+)
+
+head(df_kamp)
+
+```
+
+```{r}
+
+df_tt$dyad_type <- 'RomanticPartners'
+df_tt <- rescale_measures(
+  df_tt, 
+  day = 'day',
+  id = 'userID', #!todo: how to deal with dyadic datasets? Select one person at random?
+  mvpa = 'minutes_mvpa_non_filtered', #!todo: use self-report?
+  dyad_type = 'dyad_type',
+  
+  emo_support = 'ss_emo_pleasure', #?todo: which support do we use?
+  pract_support = 'ss_inst_prov', 
+  pos_control = 'ss_psc_more',
+  neg_control = 'ss_nsc_more'
+)
+
+head(df_tt)
+
+```
+
+
+# Combine Datasets and Center within- and between person
+
+Function to combinde datasets provided
+
+```{r}
+
+combine_datasets <- function(...){ 
+  data_list <- list(...)
+  
+  for (i in seq_along(data_list)) {
+    data_list[[i]]$studyID <- i
+  }
+  
+  # Combine the data frames into one
+  combined_df <- dplyr::bind_rows(data_list) %>%
+    bmlm::isolate(
+      by = 'id', 
+      value = c('emo_support', 'pract_support', 'pos_control', 'neg_control'),
+      which = 'both'
+    ) %>%
+    mutate(
+      across(where(is.numeric), ~ ifelse(is.nan(.), NA, .))
+    )
+  
+  return(combined_df)
+}
+
+
+```
+
+
+Apply function and combine datasets
+
+```{r}
+
+df <- combine_datasets(
+  df_kamp,
+  df_tt
+)
+
+head(df)
+head(df[df$studyID == 2,])
+
+```
+

@@ -230,6 +230,16 @@
       ],
       "Hash": "c39f4155b3ceb1a9a2799d700fbd4b6a"
     },
+    "audio": {
+      "Package": "audio",
+      "Version": "0.1-11",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "4ea781155975a6d220888443f5e823dc"
+    },
     "backports": {
       "Package": "backports",
       "Version": "1.5.0",
@@ -286,6 +296,16 @@
         "utils"
       ],
       "Hash": "768acac338a7a17a063e8bb88c58e611"
+    },
+    "beepr": {
+      "Package": "beepr",
+      "Version": "2.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "audio"
+      ],
+      "Hash": "4ca24fd5ccfa7397a722aaee347e918d"
     },
     "bit": {
       "Package": "bit",
@@ -597,6 +617,22 @@
       ],
       "Hash": "bb097fccb22d156624fd07cd2894ddb6"
     },
+    "correlation": {
+      "Package": "correlation",
+      "Version": "0.8.6",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datasets",
+        "datawizard",
+        "insight",
+        "parameters",
+        "stats"
+      ],
+      "Hash": "8b6512d8f60685736ee3bafdc292190d"
+    },
     "cpp11": {
       "Package": "cpp11",
       "Version": "0.5.1",
@@ -790,6 +826,28 @@
         "vctrs"
       ],
       "Hash": "54ed3ea01b11e81a86544faaecfef8e2"
+    },
+    "easystats": {
+      "Package": "easystats",
+      "Version": "0.7.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "correlation",
+        "datawizard",
+        "effectsize",
+        "insight",
+        "modelbased",
+        "parameters",
+        "performance",
+        "report",
+        "see",
+        "tools",
+        "utils"
+      ],
+      "Hash": "d112eea61b71f7b253d27def2d6bc61a"
     },
     "effectsize": {
       "Package": "effectsize",
@@ -1556,6 +1614,24 @@
       ],
       "Hash": "785ef8e22389d4a7634c6c944f2dc07d"
     },
+    "modelbased": {
+      "Package": "modelbased",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "graphics",
+        "insight",
+        "parameters",
+        "stats",
+        "tools",
+        "utils"
+      ],
+      "Hash": "1e8ee59c3cb38d41df8bbc93d7f6361d"
+    },
     "modelr": {
       "Package": "modelr",
       "Version": "0.1.11",
@@ -2203,6 +2279,29 @@
         "viridisLite"
       ],
       "Hash": "c19df082ba346b0ffa6f833e92de34d1"
+    },
+    "see": {
+      "Package": "see",
+      "Version": "0.10.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "correlation",
+        "datawizard",
+        "effectsize",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "insight",
+        "modelbased",
+        "parameters",
+        "patchwork",
+        "performance",
+        "stats"
+      ],
+      "Hash": "e1d3163e1c87f9ccd337cb937e7c3437"
     },
     "selectr": {
       "Package": "selectr",
