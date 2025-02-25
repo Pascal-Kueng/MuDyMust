@@ -31,6 +31,7 @@ library(brms)
 library(remotes)
 #remotes::install_github('Pascal-kueng/wbCorr')
 library(wbCorr)
+library(priorsense)
 
 source(file.path('Functions', 'PrettyTables.R'))
 source(file.path('Functions', 'ReportModels.R'))
@@ -68,6 +69,7 @@ options(
   , es.use_symbols = TRUE
 )
 
+set.seed(888)
 
 ```
 
@@ -116,6 +118,8 @@ plot(df_merged$dyad_type, df_merged$mvpa)
 ```
 
 
+!todo: check for outliers, missing values (descriptive), and influential points
+
 # Bivariate correlations
 
 ```{r}
@@ -136,40 +140,165 @@ summary(cors, 'wb')
 
 ## Positive Control
 
+!todo: separate models for predictors that don't always co-occur
+
+Create model and do prior predictive checks
+
 ```{r}
 
 ## Support
-formula_emo_support <- bf(
-  mvpa ~ (pos_control_cw + pos_control_cb) * dyad_type + 
-    (1 + pos_control_cw | studyID/id),
-  family = negbinomial()
+formula_control <- bf(
+  mvpa ~ 
+    (pos_control_cw + pos_control_cb + neg_control_cw + neg_control_cb) * dyad_type +
+    (1 + pos_control_cw + neg_control_cw | studyID/id),
+  family = negbinomial() # !todo: perhaps a hurdle lognormal model would be more appropriate
 )
 
-#prior1 <- !todo: define priors
 
-model_support_emo <- brm(
-  formula_emo_support, 
-  #prior = prior1,
+prior1 <- c(
+  brms::set_prior("normal(0, 2.5)", class = "b"),
+  brms::set_prior("normal(3.5, 2.5)", class = "Intercept", lb = 0),  # ~ 33 mins
+  brms::set_prior("normal(0, 1.5)", class = "sd", lb = 0),
+  brms::set_prior("normal(0.5, 1.5)", class = "shape", lb = 0)
+)
+
+
+## Fit the model using only the priors
+m_control_prior <- brm(
+  formula = formula_control, 
   data = df_merged, 
+  prior = prior1,
+  sample_prior = "only",  # draw from the priors only
   chains = 4, 
-  iter = 2000, 
-  warmup = 1000, 
+  iter = iterations, 
+  warmup = warmup, 
   cores = 4, 
   backend = 'cmdstan',
-  file = file.path('models_cache', 'support_emo')
+  file = file.path('models', 'm_control_prior'),
+  seed = 888
 )
 
-summary(model_support_emo)
-check_brms(model_support_emo)
+## Visualize the prior predictive distribution
+pp_check(m_control_prior, type = 'hist')
+summary(m_control_prior)
 
+```
+
+
+Estimating the model
+
+```{r}
+
+m_control <- brm(
+  formula_control, 
+  prior = prior1,
+  data = df_merged, 
+  chains = 4, 
+  iter = iterations, 
+  warmup = warmup, 
+  cores = 4, 
+  backend = 'cmdstan',
+  file = file.path('models', 'm_control'),
+  seed = 888
+)
+
+summary(m_control)
+
+```
+
+
+Assess Model Convergence and Fit
+
+```{r}
+if (check_models) {
+  check_brms(m_control)
+  DHARMa.check_brms.all(m_control)
+}
+
+```
+
+
+Prior Sensitivity Checks
+
+```{r}
+
+if (check_models) {
+  priorsense::powerscale_sensitivity(m_control)
+  priorsense::powerscale_plot_dens(m_control)
+  priorsense::powerscale_plot_ecdf(m_control)
+  priorsense::powerscale_plot_quantities(m_control)
+}
+
+```
+
+
+### Plot Interactions
+```{r}
+
+# Generate the conditional effects plot
+cond_eff <- brms::conditional_effects(
+  model_support_emo, 
+  effects = 'dyad_type:pos_control_cw'
+)
+
+
+plot_data <- cond_eff$`dyad_type:pos_control_cw`
+
+
+my_colors <- c("#E69F00", "#009E73", "#56B4E9")
+
+# Plot
+ggplot(
+  plot_data, 
+  aes(
+    x = pos_control_cw, 
+    y = estimate__, 
+    color = dyad_type, 
+    fill = dyad_type,
+    linetype = dyad_type
+  )
+) +
+  geom_ribbon(aes(ymin = lower__, ymax = upper__), alpha = 0.15) +
+  geom_line(linewidth = 1.2) +
+  labs(
+    title = "Conditional Effects: Moderation",
+    x = "Daily Positive Control",
+    y = "Daily MVPA"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10),
+    legend.key.width = unit(2, 'cm'),
+    legend.key.spacing.y = unit(0.2, 'cm'),
+    legend.key.spacing = unit(0.5, 'cm'),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14, face = "bold"),
+    axis.title.y = element_text(size = 14, face = "bold"),
+    axis.text = element_text(size = 12),
+    panel.grid.major = element_line(color = "lightgrey"),
+    panel.grid.minor = element_blank()
+  )
+
+ggsave(
+  file.path("Output", sub_folder, paste0("Plot Interaction Color PSC.svg")),
+  device = 'svg',
+  width = 8,
+  height = 5.6
+  )
 
 
 ```
 
 
 
+Determining whether the slopes are significant for certain dyads
+
+```{r}
 
 
 
+```
 
 

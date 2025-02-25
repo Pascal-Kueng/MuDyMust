@@ -31,7 +31,7 @@ library(bmlm)
 
 df_kamp <- haven::read_sav('Datasets/KAMP_full.sav') 
 # only select the correct days
-df_kamp <- df_kamp[df_kamp$day_ent >= 0,] # !todo: will we only include these days?
+df_kamp <- df_kamp[df_kamp$day_ent >= 0,] # !todo: will we only include these days? I don't think we will be able to use KAMP altogether actually?
 
 df_tt <- readRDS('Datasets/t&t.rds')
 
@@ -114,7 +114,7 @@ rescale_measures <- function(
     dplyr::mutate(
       id = as.factor(id),
       day = as.integer(day),
-      mvpa = as.integer(mvpa),
+      mvpa = as.integer(mvpa), # !todo: will this data always be integer? 
       emo_support = as.numeric(emo_support),
       pract_support = as.numeric(pract_support),
       pos_control = as.numeric(pos_control),
