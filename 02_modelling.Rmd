@@ -104,6 +104,16 @@ hist(df$neg_control)
 
 
 ```
+# Plot MVPA
+
+```{r}
+
+hist(df$mvpa, breaks=200)
+plot(df$day, df$mvpa)
+plot(df$studyID, df$mvpa)
+plot(df$dyad_type, df$mvpa)
+
+```
 
 
 # Bivariate correlations
@@ -111,7 +121,7 @@ hist(df$neg_control)
 ```{r}
 
 cors <- wbCorr(
-  df_kamp, 
+  df, 
   cluster = 'id', 
   method = 'spearman'
 )
@@ -124,7 +134,35 @@ summary(cors, 'wb')
 
 # Modelling
 
+## Emotional Support
+
 ```{r}
+
+## Support
+formula_support_emo <- bf(
+  mvpa ~ (support_emo_cw + support_emo_cb) * rel_type + 
+    (1 + support_emo_cw | studyID/personID)
+)
+
+#prior1 <- !todo: define priors
+
+model_support_emo <- brm(
+  formula_support_emo, 
+  #prior = prior1,
+  data = df_combined, 
+  family = gaussian(), 
+  chains = 4, 
+  iter = 2000, 
+  warmup = 1000, 
+  cores = 4, 
+  backend = 'cmdstan',
+  file = file.path('models_cache', 'support_emo')
+)
+
+summary(model_support_emo)
+check_brms(model_support_emo)
+
+
 
 ```
 

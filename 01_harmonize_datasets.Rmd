@@ -199,7 +199,8 @@ combine_datasets <- function(...){
       which = 'both'
     ) %>%
     mutate(
-      across(where(is.numeric), ~ ifelse(is.nan(.), NA, .))
+      across(where(is.numeric), ~ ifelse(is.nan(.), NA, .)),
+      studyID = as.factor(studyID)
     )
   
   return(combined_df)
