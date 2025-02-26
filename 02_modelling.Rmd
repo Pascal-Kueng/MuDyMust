@@ -32,6 +32,7 @@ library(remotes)
 #remotes::install_github('Pascal-kueng/wbCorr')
 library(wbCorr)
 library(priorsense)
+library(svglite)
 
 source(file.path('Functions', 'PrettyTables.R'))
 source(file.path('Functions', 'ReportModels.R'))
@@ -237,7 +238,7 @@ if (check_models) {
 
 # Generate the conditional effects plot
 cond_eff <- brms::conditional_effects(
-  model_support_emo, 
+  m_control, 
   effects = 'dyad_type:pos_control_cw'
 )
 
@@ -282,7 +283,7 @@ ggplot(
   )
 
 ggsave(
-  file.path("Output", sub_folder, paste0("Plot Interaction Color PSC.svg")),
+  file.path("Output", "Plot Interaction Color PSC.svg"),
   device = 'svg',
   width = 8,
   height = 5.6
