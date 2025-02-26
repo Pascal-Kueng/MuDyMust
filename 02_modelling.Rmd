@@ -213,6 +213,7 @@ summary(m_control)
 Assess Model Convergence and Fit
 
 ```{r}
+
 if (check_models) {
   check_brms(m_control)
   DHARMa.check_brms.all(m_control)
