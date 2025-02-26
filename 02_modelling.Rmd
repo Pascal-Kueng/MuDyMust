@@ -18,18 +18,20 @@ output:
 
 # Setup
 
-```{r setup, message = FALSE, warning = FALSE, results = 'hide'}
+```{r setup}
 
 library(tidyverse)
 library(easystats)
-library(cmdstanr)
 library(knitr)
 library(brms)
-#install.packages("cmdstanr", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
-#cmdstanr::check_cmdstan_toolchain(fix = TRUE)
-#cmdstanr::install_cmdstan()
-library(remotes)
-#remotes::install_github('Pascal-kueng/wbCorr')
+library(cmdstanr)
+cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+if (is.null(cmdstanr::cmdstan_version())) {
+  cmdstanr::install_cmdstan()
+} else {
+  message("CmdStan is already installed: ", cmdstanr::cmdstan_version())
+}
+
 library(wbCorr)
 library(priorsense)
 library(svglite)
