@@ -47,7 +47,7 @@ Setting general parameters
 
 system("shutdown /a") # prevent previously initialized shutdowns
 shutdown = FALSE # restart after script finished or an error occurred (can be stoped within 180 seconds with command above)
-check_models = TRUE 
+check_models = FALSE 
 get_bayesfactor = FALSE 
 
 if (get_bayesfactor) {
@@ -233,10 +233,61 @@ if (check_models) {
 ```
 
 
-### Plot Interactions
+### Determining whether the slopes are significant for certain dyads
+
+#### Within-Person 
+
+```{r}
+
+# Significance of slope for "Test" (reference category)
+hypothesis(m_control, "pos_control_cw > 0")
+
+# Significance of slope for "Romantic Partners"
+hypothesis(m_control, "pos_control_cw + pos_control_cw:dyad_typeRomanticPartners> 0")
+
+# Significance of slope for "Best Friends"
+#hypothesis(m_control, "pos_control_cw + pos_control_cw:dyad_typeBestFriends> 0")
+
+```
+
+#### Between-Person
+```{r}
+
+# Significance of slope for "Test" (reference category)
+hypothesis(m_control, "pos_control_cb > 0")
+
+# Significance of slope for "Romantic Partners"
+hypothesis(m_control, "pos_control_cb + pos_control_cb:dyad_typeRomanticPartners> 0")
+
+# Significance of slope for "Best Friends"
+#hypothesis(m_control, "pos_control_cw + pos_control_cw:dyad_typeBestFriends> 0")
+
+```
+
+
+# Plot effects and interactions
+
+```{r}
+
+eff <- conditional_effects(
+  m_control,
+  re_formula = NULL,
+  #method = 'posterior_predict', # !todo: which one to use? epred, linpred or posterior predict?
+  plot = FALSE
+)
+
+plot(eff, ask = FALSE)
+
+```
+
+
+## Pretty Interaction Plots (example)
+
+
 ```{r}
 
 # Generate the conditional effects plot
+
 cond_eff <- brms::conditional_effects(
   m_control, 
   effects = 'dyad_type:pos_control_cw'
@@ -292,14 +343,5 @@ ggsave(
 
 ```
 
-
-
-Determining whether the slopes are significant for certain dyads
-
-```{r}
-
-
-
-```
 
 

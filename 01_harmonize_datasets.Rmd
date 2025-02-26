@@ -44,42 +44,46 @@ Function that renames measures and puts them on the same scale.
 
 ```{r}
 
+global_required_predictors <- c("emo_support", "pract_support", "pos_control", "neg_control") # !todo: which variables?
+
 rescale_measures <- function(
   data, 
   day,
   id,
-  mvpa, # !todo: use device based?? then filter and add weartime
+  mvpa,
   dyad_type, 
-  emo_support = NA, 
-  pract_support = NA, 
-  pos_control = NA, 
-  neg_control = NA,
+  predictors, 
   
+  required_predictors = global_required_predictors,
   original_scale = "auto", 
   new_scale = c(0, 5)
 ) {
-  # Create a named list mapping the provided variables to standard names
-  vars_map <- list(
-    id = id,
-    day = day,
-    mvpa = mvpa,
-    dyad_type = dyad_type,
-    emo_support = emo_support,
-    pract_support = pract_support,
-    pos_control = pos_control,
-    neg_control = neg_control
+
+  # Check that all required predictors are specified
+  missing_predictors <- setdiff(required_predictors, names(predictors))
+  if (length(missing_predictors) > 0) {
+    stop("Missing predictors in mapping: ", paste(missing_predictors, collapse = ", "))
+  }
+  
+  # Create a standardized data frame with key variables
+  standardized_data <- data.frame(
+    id = data[[id]],
+    day = data[[day]],
+    mvpa = data[[mvpa]],
+    dyad_type = data[[dyad_type]],
+    stringsAsFactors = FALSE
   )
   
-  # Only keep non-NA columns and subset the data
-  provided_vars <- vars_map[!sapply(vars_map, is.na)]
-  data <- data[, unlist(provided_vars)]
-  names(data) <- names(provided_vars)
-  
-  # Ensure that all measure variables exist; if missing, add as NA
-  measure_vars <- c("emo_support", "pract_support", "pos_control", "neg_control")
-  for (m in measure_vars) {
-    if (!m %in% names(data)) {
-      data[[m]] <- NA
+  # Process each predictor: if the mapping is NA, create a column of NA; otherwise, use the column from the data
+  for (pred in names(predictors)) {
+    col_name <- predictors[[pred]]
+    if (is.na(col_name)) {
+      standardized_data[[pred]] <- NA
+    } else {
+      if (!col_name %in% names(data)) {
+        stop(paste("Column", col_name, "not found in data for predictor", pred))
+      }
+      standardized_data[[pred]] <- data[[col_name]]
     }
   }
   
@@ -105,26 +109,22 @@ rescale_measures <- function(
     (x - orig_min) / (orig_max - orig_min) * (new_scale[2] - new_scale[1]) + new_scale[1]
   }
   
-  # Rescale measure variables
-  data <- data %>% 
-    dplyr::mutate(across(all_of(measure_vars), ~ rescale_column(.x, original_scale, new_scale)))
+  # Rescale the predictor columns
+  standardized_data <- standardized_data %>% 
+    dplyr::mutate(across(all_of(required_predictors), ~ rescale_column(.x, original_scale, new_scale)))
   
   # Ensure correct data types
-  data <- data %>%
+  standardized_data <- standardized_data %>%
     dplyr::mutate(
       id = as.factor(id),
       day = as.integer(day),
-      mvpa = as.integer(mvpa), # !todo: will this data always be integer? 
-      emo_support = as.numeric(emo_support),
-      pract_support = as.numeric(pract_support),
-      pos_control = as.numeric(pos_control),
-      neg_control = as.numeric(neg_control),
+      mvpa = as.integer(mvpa),
       dyad_type = as.factor(dyad_type)
     )
   
-  # Return data with columns in a specified order
-  data <- data[, c("id", "dyad_type", "day", "mvpa", measure_vars)]
-  return(data)
+  # Order columns: key variables first, then predictors
+  standardized_data <- standardized_data[, c("id", "dyad_type", "day", "mvpa", required_predictors)]
+  return(standardized_data)
 }
 
 
@@ -138,19 +138,22 @@ Apply function to rescale and rename the data
 ## KAMP
 ```{r}
 
+# Create Dyad-Type column
 df_kamp$dyad_type <- 'Test'
+
+# Apply function to prepare data
 df_kamp <- rescale_measures(
-  df_kamp, 
+  data = df_kamp, 
   day = 'day_ent',
   id = 'IDdiary',
-  mvpa = 'TotalMVPA', #!todo: use self-report?
-  
-  #emo_support = 'soz_emo', ?
-  #pract_support = 'soz_prak', ?
-  pos_control = 'T210_1',
-  neg_control = 'T211_1',
-  
-  dyad_type = 'dyad_type'
+  mvpa = 'TotalMVPA',
+  dyad_type = 'dyad_type',
+  predictors = c(
+    pos_control = "T210_1",
+    neg_control = "T211_1",
+    emo_support = NA,      # explicitly set to NA if not available
+    pract_support = NA     # explicitly set to NA if not available
+  )
 )
 
 head(df_kamp)
@@ -166,11 +169,12 @@ df_tt <- rescale_measures(
   id = 'userID', #!todo: how to deal with dyadic datasets? Select one person at random?
   mvpa = 'minutes_mvpa_non_filtered', #!todo: use self-report?
   dyad_type = 'dyad_type',
-  
-  emo_support = 'ss_emo_pleasure', #?todo: which support do we use?
-  pract_support = 'ss_inst_prov', 
-  pos_control = 'ss_psc_more',
-  neg_control = 'ss_nsc_more'
+  predictors = c(
+    emo_support = 'ss_emo_pleasure', #?todo: which support do we use?
+    pract_support = 'ss_inst_prov', 
+    pos_control = 'ss_psc_more',
+    neg_control = 'ss_nsc_more'
+  )
 )
 
 head(df_tt)
@@ -184,27 +188,27 @@ Function to combinde datasets provided
 
 ```{r}
 
-combine_datasets <- function(...){ 
+combine_datasets <- function(..., pred_vars = global_required_predictors){ 
   data_list <- list(...)
   
   for (i in seq_along(data_list)) {
     data_list[[i]]$studyID <- i
   }
   
-  # Combine the data frames into one
   combined_df <- dplyr::bind_rows(data_list) %>%
     bmlm::isolate(
-      by = 'id', 
-      value = c('emo_support', 'pract_support', 'pos_control', 'neg_control'),
-      which = 'both'
+      by = "id", 
+      value = pred_vars,
+      which = "both"
     ) %>%
-    mutate(
-      across(where(is.numeric), ~ ifelse(is.nan(.), NA, .)),
+    dplyr::mutate(
+      dplyr::across(where(is.numeric), ~ ifelse(is.nan(.), NA, .)),
       studyID = as.factor(studyID)
     )
   
   return(combined_df)
 }
+
 
 
 ```
