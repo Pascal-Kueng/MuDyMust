@@ -34,7 +34,7 @@ For detailed project goals and background information, please refer to this [web
 
 ## When Working on the Repository
 
-- *Branching*: Create a personal branch for your work.2. Always pull before starting work
+- *Branching*: Create a personal branch for your work.
 - *Pull Updates*: Before you begin working, always pull the latest changes from the main branch.
 - *Commits*: Commit your changes regularly and push them to GitHub.
 - *Pull Requests*: When your changes are ready, create a pull request and request a code review.
