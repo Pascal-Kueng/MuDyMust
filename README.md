@@ -1,6 +1,6 @@
 # MuDyMust
 
-For detailed project goals and background information, please refer to this [web-page](https://irhcollaborative.com/?p=6566).
+For project goals and background information, please refer to this [web-page](https://irhcollaborative.com/?p=6566).
 
 ---
 
@@ -9,6 +9,7 @@ For detailed project goals and background information, please refer to this [web
 - **Git** – Install from [git-scm.com](https://git-scm.com/).
 - A Git client for repository management (e.g., [GitHub Desktop](https://desktop.github.com/)).
 - **R** version 4.4 or newer.
+- **R Studio** 
 
 ---
 
