@@ -33,7 +33,7 @@ df_kamp <- haven::read_sav('Datasets/KAMP_full.sav')
 # only select the correct days
 df_kamp <- df_kamp[df_kamp$day_ent >= 0,] 
 
-df_tt <- readRDS('Datasets/t&t.rds')
+df_tt <- readRDS('Datasets/t&t.rds') 
 
 ```
 
