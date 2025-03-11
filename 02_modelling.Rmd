@@ -121,7 +121,6 @@ plot(df_merged$dyad_type, df_merged$mvpa)
 ```
 
 
-!todo: check for outliers, missing values (descriptive), and influential points
 
 # Bivariate correlations
 
@@ -143,8 +142,6 @@ summary(cors, 'wb')
 
 ## Positive Control
 
-!todo: separate models for predictors that don't always co-occur
-
 Create model and do prior predictive checks
 
 ```{r}
@@ -154,7 +151,7 @@ formula_control <- bf(
   mvpa ~ 
     (pos_control_cw + pos_control_cb + neg_control_cw + neg_control_cb) * dyad_type +
     (1 + pos_control_cw + neg_control_cw | studyID/id),
-  family = negbinomial() # !todo: perhaps a hurdle lognormal model would be more appropriate
+  family = negbinomial() 
 )
 
 
@@ -275,7 +272,7 @@ hypothesis(m_control, "pos_control_cb + pos_control_cb:dyad_typeRomanticPartners
 eff <- conditional_effects(
   m_control,
   re_formula = NULL,
-  #method = 'posterior_predict', # !todo: which one to use? epred, linpred or posterior predict?
+  #method = 'posterior_predict', 
   plot = FALSE
 )
 

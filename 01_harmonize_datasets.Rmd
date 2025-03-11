@@ -166,11 +166,11 @@ df_tt$dyad_type <- 'RomanticPartners'
 df_tt <- rescale_measures(
   df_tt, 
   day = 'day',
-  id = 'userID', #!todo: how to deal with dyadic datasets? Select one person at random?
-  mvpa = 'minutes_mvpa_non_filtered', #!todo: use self-report?
+  id = 'userID', 
+  mvpa = 'minutes_mvpa_non_filtered',
   dyad_type = 'dyad_type',
   predictors = c(
-    emo_support = 'ss_emo_pleasure', #!todo: which support do we use?
+    emo_support = 'ss_emo_pleasure',
     pract_support = 'ss_inst_prov', 
     pos_control = 'ss_psc_more',
     neg_control = 'ss_nsc_more'
