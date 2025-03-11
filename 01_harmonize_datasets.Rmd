@@ -44,7 +44,7 @@ Function that renames measures and puts them on the same scale.
 
 ```{r}
 
-global_required_predictors <- c("emo_support", "pract_support", "pos_control", "neg_control") # !todo: which variables?
+global_required_predictors <- c("emo_support", "pract_support", "pos_control", "neg_control")
 
 rescale_measures <- function(
   data, 
