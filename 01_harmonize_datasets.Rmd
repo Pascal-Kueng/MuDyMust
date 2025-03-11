@@ -31,7 +31,7 @@ library(bmlm)
 
 df_kamp <- haven::read_sav('Datasets/KAMP_full.sav') 
 # only select the correct days
-df_kamp <- df_kamp[df_kamp$day_ent >= 0,] # !todo: will we only include these days? I don't think we will be able to use KAMP altogether actually?
+df_kamp <- df_kamp[df_kamp$day_ent >= 0,] 
 
 df_tt <- readRDS('Datasets/t&t.rds')
 
@@ -170,7 +170,7 @@ df_tt <- rescale_measures(
   mvpa = 'minutes_mvpa_non_filtered', #!todo: use self-report?
   dyad_type = 'dyad_type',
   predictors = c(
-    emo_support = 'ss_emo_pleasure', #?todo: which support do we use?
+    emo_support = 'ss_emo_pleasure', #!todo: which support do we use?
     pract_support = 'ss_inst_prov', 
     pos_control = 'ss_psc_more',
     neg_control = 'ss_nsc_more'
